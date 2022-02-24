@@ -1,0 +1,98 @@
+# gmodels library for SPSS-like crosstables
+install.packages("gmodels")
+library(gmodels)
+library(ggplot2)
+library(psych)
+getwd()
+
+# loading the BCS data
+BCS <- read.csv("BCS0708.csv", header = TRUE)
+View(BCS)
+str(BCS)
+
+# nominal x nominal variable
+# basic description
+table(BCS$sex)
+summary(BCS$bcsvictim)
+sexTab <- table(BCS$sex)
+prop.table(sexTab)
+
+# sex & bcsvictim- clustered bar chart
+ggplot(BCS, aes(x  = sex, fill = bcsvictim)) +
+  geom_bar()
+
+ggplot(BCS, aes(x  = sex, fill = bcsvictim)) +
+  geom_bar(position = "fill")
+
+# crosstable with residuals, row percent + a full table
+table(BCS$sex, BCS$bcsvictim)
+CrossTable(BCS$sex, BCS$bcsvictim, format = c("SPSS"))
+CrossTable(BCS$sex, BCS$bcsvictim, format = c("SPSS"), chisq = TRUE, 
+           prop.c = FALSE, prop.chisq = FALSE, prop.t = FALSE, asresid = TRUE)
+
+# nominal x ordinal variable
+# basic description
+summary(BCS$walkdark)
+
+# sex & walkdark- clustered bar chart
+ggplot(BCS, aes(x  = sex, fill = walkdark)) +
+  geom_bar()
+
+ggplot(BCS, aes(x  = sex, fill = walkdark)) +
+  geom_bar(position = "fill")
+
+# crosstable with residuals, row percent + a full table
+table(BCS$sex, BCS$walkdark)
+CrossTable(BCS$sex, BCS$walkdark, format = c("SPSS"))
+CrossTable(BCS$sex, BCS$walkdark, format = c("SPSS"), chisq = TRUE, 
+           prop.c = FALSE, prop.chisq = FALSE, prop.t = FALSE, asresid = TRUE)
+
+# Cramer's V
+install.packages("lsr")
+library(lsr)
+myTab <- table(BCS$sex, BCS$walkdark)
+cramersV(myTab)
+
+
+# ordinal x ordinal variable
+# walkday & wmugged
+table(BCS$walkday)
+table(BCS$wmugged)
+
+# reordering the variables
+BCS$walkdayR <- factor(BCS$walkday, 
+                           levels = c('very safe', 'fairly safe', 'a bit unsafe',
+                                      'or very unsafe'))
+BCS$wmuggedR <- factor(BCS$wmugged, 
+                           levels = c('not at all worried', 'not very worried',
+                                      'fairly worried', 'very worried'))
+wdTab <- table(BCS$walkdayR)
+wmTab <- table(BCS$wmuggedR)
+prop.table(wdTab)
+prop.table(wmTab)
+
+# walkday & wmugged - clustered bar chart
+ggplot(BCS, aes(x  = walkdayR, fill = wmuggedR)) +
+  geom_bar(position = "fill")
+
+# crosstable with residuals, row percent + a full table
+CrossTable(BCS$walkdayR, BCS$wmuggedR, format = c("SPSS"), chisq = TRUE, 
+           prop.c = FALSE, prop.chisq = FALSE, prop.t = FALSE, asresid = TRUE)
+
+# Kendal's tau
+BCS$walkdayRN <- as.numeric(BCS$walkdayR, 
+                       levels = c('very safe', 'fairly safe', 'a bit unsafe',
+                                  'or very unsafe'))
+BCS$wmuggedRN <- as.numeric(BCS$wmuggedR, 
+                       levels = c('not at all worried', 'not very worried',
+                                  'fairly worried', 'very worried'))
+
+cor(BCS$walkdayRN, BCS$wmuggedRN, method = "kendall", use = "complete.obs")
+
+# Goodman-Kruskall Gamma
+install.packages("vcdExtra")
+library(vcdExtra)
+
+ordTab <- table(BCS$walkdayR, BCS$wmuggedR)
+ordTab
+GKgamma(ordTab)
