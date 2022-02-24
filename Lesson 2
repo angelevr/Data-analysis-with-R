@@ -1,0 +1,100 @@
+# installing and loading ggplot
+install.packages("ggplot2")
+library(ggplot2)
+library(tidyverse)
+
+getwd()
+
+# loading the BCS dataset
+BCS0708 <- read.csv("BCS0708.csv", header = TRUE)
+View(BCS0708)
+
+# barcharts
+summary(BCS0708$walkday)
+
+ggplot(BCS0708, aes(x = walkday)) +
+  geom_bar()
+
+# creating new variable (by reordering the old one)
+BCS0708$walkdayR <- factor(BCS0708$walkday, 
+                           levels = c('very safe','fairly safe','a bit unsafe',
+                                      'or very unsafe'))
+
+# plotting the variable again (and subsetting out the NA data)
+ggplot(subset(BCS0708, !is.na(walkdayR)), aes(x = walkdayR)) +
+  geom_bar()
+
+# percentages instead of counts
+ggplot(subset(BCS0708, !is.na(walkdayR)), aes(x = walkdayR)) +
+  geom_bar(aes(y = ..count../sum(..count..)))
+
+# stacked bar chart by sex variable
+ggplot(subset(BCS0708, !is.na(walkdayR)), aes(x = walkdayR, fill = sex)) +
+  geom_bar()
+
+ggplot(subset(BCS0708, !is.na(walkdayR)), aes(x = sex, fill = walkdayR)) +
+  geom_bar()
+
+# clustered bar chart
+ggplot(subset(BCS0708, !is.na(walkdayR)), aes(x = sex, fill = walkdayR)) +
+  geom_bar(position = "dodge")
+
+# filling up on the y axis
+ggplot(subset(BCS0708, !is.na(walkdayR)), aes(x = sex, fill = walkdayR)) +
+  geom_bar(position = "fill")
+
+# adding labels
+ggplot(subset(BCS0708, !is.na(walkdayR)), aes(x = sex, fill = walkdayR)) +
+  geom_bar(position = "fill") +
+  labs(title = "Barchart of safety by gender", y = "frequency", x = "gender")
+
+# a simple histogram
+ggplot(data = BCS0708, aes(x = age)) + 
+  geom_histogram()
+
+# multiple simple histograms for subcategories
+ggplot(data = BCS0708, aes(x = age)) + 
+  geom_histogram() + 
+  facet_wrap(~livharm1)
+
+ggplot(subset(BCS0708, !is.na(livharm1)), aes(x = age)) + 
+  geom_histogram() + 
+  facet_wrap(~livharm1)
+
+# adding a title
+ggplot(subset(BCS0708, !is.na(livharm1)), aes(x = age)) + 
+  geom_histogram() + 
+  facet_wrap(~livharm1) +
+  labs(title = "Histogram of age by marital status")
+
+# density plot
+ggplot(data = BCS0708, aes(x = age)) + 
+  geom_histogram(stat = "density")
+
+# a simple boxplot
+ggplot(data = BCS0708, aes(x = age)) + 
+  geom_boxplot()
+
+#  multiple boxplots for subcategories
+ggplot(data = BCS0708, aes(x = age, y = sex)) + 
+  geom_boxplot()
+
+# flipping the axes
+ggplot(data = BCS0708, aes(x = age, y = sex)) + 
+  geom_boxplot() +
+  coord_flip()
+
+# changing the background
+ggplot(data = BCS0708, aes(x = age, y = sex)) + 
+  geom_boxplot() +
+  coord_flip() +
+  theme_bw()
+
+# violin plot
+ggplot(data = BCS0708, aes(x = age, y = livharm1)) + 
+  geom_violin()
+
+# combining with a boxplot
+ggplot(data = BCS0708, aes(x = age, y = livharm1)) + 
+  geom_violin() +
+  geom_boxplot(width = 0.1)
