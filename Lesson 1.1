@@ -1,0 +1,100 @@
+# setting a working directory
+setwd("filepath")
+getwd()
+
+# reading in data in various formats
+# readr package for reading .csv files
+install.packages("readr") # installing a package - once is enough
+library("readr") # loading a package - once each session is necessary
+
+# creating an object 'myData' 
+myData <- read_csv("Boston.csv", col_names = TRUE) 
+# col_names=TRUE implies that the first row has column names
+myData # inspecting the object
+View(myData)
+
+# compare with the base R option
+myCSVData <- read.csv("Boston.csv", header = TRUE) # header = column names
+myCSVData
+View(myCSVData)
+
+# reading .xls files with the readxl package
+install.packages("readxl")
+library("readxl")
+my_data <- read_xlsx("/some_path_to_file/file.xlsx")
+
+# reading .sav (SPSS) files with the haven package
+install.packages("foreign")
+library(foreign)
+mySPSSdata <- read.spss("workprog.sav", to.data.frame = TRUE)
+mySPSSdata
+View(mySPSSdata)
+
+# basic descriptives
+nrow(mySPSSdata) # nr of rows
+ncol(mySPSSdata) # nr of columns
+str(mySPSSdata$age)
+head(mySPSSdata$age)
+
+# describing a discerete variable
+# arithmetic mean and standard deviation
+mean(mySPSSdata$age)
+sd(mySPSSdata$age)
+
+# median and median absolute deviation
+median(mySPSSdata$age)
+mad(mySPSSdata$age)
+
+# histogram and boxplot
+hist(mySPSSdata$age)
+boxplot(mySPSSdata$age, ylab = 'age', main = "a boxplot of age")
+
+# nicer plots with ggplot
+library(ggplot2) # if you haven't installed this package yet, do so first
+ggplot(data = mySPSSdata, aes(x = mySPSSdata$age)) + 
+  geom_histogram()
+ggplot(data = mySPSSdata, aes(x = mySPSSdata$age)) + 
+  geom_boxplot()
+
+# describing a categorical variable (a factor)
+# a table of absolute frequencies
+table(mySPSSdata$ed)
+EdTable <- table(mySPSSdata$ed)
+EdTable
+
+# a table of relative frequencies
+round(100*EdTable/sum(EdTable), 2) 
+
+# barplot
+barplot(EdTable, main = "Highest achieved education")
+
+# two way analysis - calcculating means for groups with psych package
+library(psych)
+describe(mySPSSdata$incaft)
+describeBy(mySPSSdata$incaft, mySPSSdata$ed)
+
+# data transformation
+# categorization
+mySPSSdata$incaftBin[mySPSSdata$incaft <= 16.59] <- "below average" 
+mySPSSdata$incaftBin[mySPSSdata$incaft > 16.59] <- "above average"
+table(mySPSSdata$incaft, mySPSSdata$incaftBin) # logical control
+
+# arithmetic transformation
+mySPSSdata$incaftGBP <- mySPSSdata$incaft * 0.75
+hist(mySPSSdata$incaft)
+hist(mySPSSdata$incaftGBP)
+mySPSSdata$incaft # logical control
+mySPSSdata$incaftGBP
+cor(mySPSSdata$incaft, mySPSSdata$incaftGBP)
+
+# conditional transformation
+mySPSSdata$genMS[mySPSSdata$marital == "Unmarried" &
+                   mySPSSdata$gender == "Male"] <- "unmarried male"
+mySPSSdata$genMS[mySPSSdata$marital == "Married" &
+                   mySPSSdata$gender == "Male"] <- "married male"
+mySPSSdata$genMS[mySPSSdata$marital == "Unmarried" &
+                   mySPSSdata$gender == "Female"] <- "unmarried female"
+mySPSSdata$genMS[mySPSSdata$marital == "Married" &
+                   mySPSSdata$gender == "Female"] <- "married female"
+table(mySPSSdata$marital, mySPSSdata$gender) # logical control
+table(mySPSSdata$genMS)
