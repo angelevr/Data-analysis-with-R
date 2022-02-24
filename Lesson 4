@@ -1,0 +1,68 @@
+# loading a package foreign for importing SPSS data
+library(foreign)
+library(ggplot2)
+library(psych)
+getwd()
+
+# loading the data
+workProg <- read.spss("workprog.sav", to.data.frame = TRUE)
+View(workProg)
+
+# comparing two independent samples
+describeBy(workProg$incaft, workProg$gender)
+
+ggplot(workProg, aes(x = incaft, colour = gender)) + 
+  geom_boxplot()
+
+ggplot(workProg, aes(x = incaft, colour = gender)) + 
+  geom_density()
+
+# t-test
+t.test(incaft ~ gender, data = workProg)
+
+# effect size
+install.packages("effsize")
+library(effsize)
+cohen.d(workProg$incaft ~ workProg$gender)
+
+# comparing two dependent samples
+ggplot(workProg, aes(x = incbef)) + 
+  geom_density(color = "blue") +
+  geom_density(aes(x = incaft), color = "red") + 
+  labs(x = "income in USD per hour before (blue) and after (red) the program") + 
+  theme_bw()
+
+# t-test
+t.test(workProg$incbef, workProg$incaft, paired = TRUE)
+# effect size
+cohen.d(workProg$incbef, workProg$incaft, paired = TRUE)
+
+# non-parametric tests - Wilcoxon tests & their effect sizes
+wilcox.test(incaft ~ gender, data = workProg, conf.int = TRUE)
+wilcox.test(workProg$incbef, workProg$incaft, paired = TRUE, conf.int = TRUE)
+
+# comparing multiple independent groups
+describeBy(workProg$incaft, workProg$ed)
+
+ggplot(workProg, aes(x = ed, y = incaft)) +
+  geom_boxplot()
+
+# one-way ANOVA
+incaftByEd <- aov(incaft ~ ed, data = workProg)
+summary(incaftByEd)
+
+# Welch's test for unequal variances
+oneway.test(incaft ~ ed, data = workProg)
+
+# post-hoc comparisons
+pairwise.t.test(workProg$incaft, workProg$ed, p.adjust.method = "bonferroni")
+
+# effect size (eta squared = R-squared)
+summary.lm(incaftByEd)
+
+# Kruskal-Wallis test& its post-hoc comparisons
+KW <- kruskal.test(incaft ~ ed, data = workProg)
+pairwise.wilcox.test(workProg$incaft, workProg$ed, p.adjust.method = "bonferroni")
+# effect size
+etaSq <- (KW$statistic - 3 + 1)/(1000 - 3)
+etaSq
