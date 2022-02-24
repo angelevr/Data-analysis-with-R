@@ -1,0 +1,79 @@
+library(ggplot2)
+
+# data - Swiss French-speaking cantons from late 18th century
+swiss <- read.csv("swiss.csv", header = TRUE)
+View(swiss)
+
+# descriptives
+sapply(swiss[,2:7], summary)
+
+# correlation matrix
+cor(swiss[,2:7])
+
+# scatterplot matrix
+pairs(swiss[,2:7])
+
+# multiple variables - 2 numeric predictors
+model1 <- lm(Fertility ~ Education, data = swiss)
+summary(model1)
+confint(model1)
+
+model2 <- lm(Fertility ~ Education + Agriculture, data = swiss)
+summary(model2)
+confint(model2)
+
+# embedded models
+model3 <- lm(Fertility ~ Education + Agriculture + Examination, data = swiss)
+summary(model3)
+confint(model3)
+
+model4 <- lm(Fertility ~ Education + Agriculture + Examination + 
+               InfantMortality, data = swiss)
+summary(model4)
+confint(model4)
+
+modelFull <- lm(Fertility ~ Education + Agriculture + Examination + 
+                  InfantMortality + Catholic, data = swiss)
+summary(modelFull)
+confint(modelFull)
+
+anova(model1, model2, model3, model4, modelFull)
+
+# including categorical predictors - dummy variables
+# dichotomizing the Catholic variable
+hist(swiss$Catholic)
+median(swiss$Catholic)
+
+swiss$CatholicBin <- ifelse(swiss$Catholic > 15.14, 1, 0)
+swiss$CatholicBin
+
+modelCat <- lm(Fertility ~ Education + Agriculture + CatholicBin, data = swiss)
+summary(modelCat)
+confint(modelCat)
+
+# interaction effects
+modelInt <- lm(Fertility ~ Agriculture + CatholicBin + 
+                 Agriculture*CatholicBin, data = swiss)
+summary(modelInt)
+confint(modelInt)
+
+# model diagnostics - checking assumptions & model fit
+library(car)
+
+# normality of residuals
+plot(density(rstudent(modelCat)))
+
+# homoskedaticity
+qqPlot(modelCat, id.n = 3)
+ncvTest(modelCat)
+
+# outliers and influential observations
+outlierTest(modelCat)
+influencePlot(modelCat, id.n = 1)
+
+modelCat_inf <- update(modelCat, subset = rownames(swiss) != 47)
+compareCoefs(modelCat, modelCat_inf)
+
+# multicolinearity
+pairs(swiss[,2:7])
+vif(modelCat)
