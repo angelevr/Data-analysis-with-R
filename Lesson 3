@@ -1,0 +1,29 @@
+# loading a package foreign for importing SPSS data
+library(foreign)
+library(ggplot2)
+
+# loading the data
+workProg <- read.spss("workprog.sav", to.data.frame = TRUE)
+View(workProg)
+
+# a numeric variable
+mean(workProg$incbef)
+# a boxplot
+ggplot(data = workProg, aes(x = incbef)) + 
+  geom_boxplot() + 
+  labs(title = "Income before the program", x = "USD per day")
+  
+# one-sample t-test & confidence interval
+t.test(workProg$incbef)
+t.test(workProg$incbef, conf.level = .99)
+
+# a categorical variable
+table(workProg$ed)
+# barplot
+ggplot(workProg, aes(x = ed)) +
+  geom_bar(fill = "blue") +
+  labs(title = "Educational attainment", x = "level of education")
+
+#m binomial proportion test & confidence interval
+prop.test(x = 193, n = 1000, p = 0.3)
+prop.test(x = 193, n = 1000, p = 0.3, conf.level = .99)
