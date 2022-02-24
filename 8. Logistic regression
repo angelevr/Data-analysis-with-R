@@ -1,0 +1,65 @@
+# loading the BCS data
+BCS <- read.csv("BCS0708.csv", header = TRUE)
+View(BCS)
+str(BCS)
+
+# inspecting the dependent variable - being a victim
+vicTab <- table(BCS$bcsvictim)
+prop.table(vicTab)
+str(BCS$bcsvictim) # character -> we need a factor
+
+BCS$bcsvictimFac <- as.factor(BCS$bcsvictim)
+table(BCS$bcsvictimFac)
+str(BCS$bcsvictimFac)
+
+levels(BCS$bcsvictimFac)
+contrasts(BCS$bcsvictimFac) # we want 1 to be "victim"
+
+# fitting a logistic regression model using the glm() function
+lr1 <- glm(bcsvictimFac ~ age, data = BCS, family = "binomial")
+summary(lr1)
+confint(lr1)
+
+# exponentiating the coefficients -> odds instead of log odds
+exp(coef(lr1))
+exp(lr1$coefficients)
+exp(cbind(OR = coef(lr1), confint(lr1)))
+
+# goodness of fit
+# Hosmer-Lemeshow/McFadden R-squared
+with(lr1, (null.deviance - deviance)/null.deviance)
+
+# a more complex model
+lr2 <- glm(bcsvictimFac ~ age + rural2 + sex + tcarea, data = BCS, 
+           family = "binomial")
+summary(lr2)
+confint(lr2)
+
+exp(lr1$coefficients)
+exp(cbind(OR = coef(lr1), confint(lr1)))
+
+# goodness of fit
+with(lr2, (null.deviance - deviance)/null.deviance)
+
+# checking for outliers & influential observations
+library(car)
+influenceIndexPlot(lr2, vars = c("Cook"), id.n = 3)
+
+# comparing the model without the outliers
+compareCoefs(lr2, update(lr2, subset = -c(3251, 4645)))
+
+# checking for multicollinearity
+vif(lr2)
+
+# model with interactions
+lr3 <- glm(bcsvictimFac ~ age + rural2 + sex + tcarea + rural2*tcarea, data = BCS, 
+           family = "binomial")
+summary(lr3)
+confint(lr3)
+
+exp(lr3$coefficients)
+exp(cbind(OR = coef(lr3), confint(lr3)))
+
+# visualising interactions with effects package
+library(effects)
+plot(effect("rural2:tcarea", lr3))
